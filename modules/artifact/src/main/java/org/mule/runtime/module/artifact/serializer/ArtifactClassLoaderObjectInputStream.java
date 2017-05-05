@@ -40,7 +40,7 @@ public class ArtifactClassLoaderObjectInputStream extends ObjectInputStream {
 
   @Override
   protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-    int val = readByte();
+    int val = readInt();
     if (val == -1) {
       return super.resolveClass(desc);
     }
