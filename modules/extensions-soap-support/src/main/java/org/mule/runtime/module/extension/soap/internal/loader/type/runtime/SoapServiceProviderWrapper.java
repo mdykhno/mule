@@ -7,9 +7,16 @@
 package org.mule.runtime.module.extension.soap.internal.loader.type.runtime;
 
 
+import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import org.mule.runtime.extension.api.soap.SoapServiceProvider;
+import org.mule.runtime.extension.api.soap.annotation.CustomTransportProviders;
 import org.mule.runtime.module.extension.internal.loader.java.type.ParameterizableTypeElement;
 import org.mule.runtime.module.extension.internal.loader.java.type.Type;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * {@link SoapComponentWrapper} implementation for classes that implements the {@link SoapServiceProvider} interface.
@@ -28,5 +35,13 @@ public class SoapServiceProviderWrapper extends SoapComponentWrapper implements 
   @Override
   public Class<? extends SoapServiceProvider> getDeclaringClass() {
     return (Class<? extends SoapServiceProvider>) super.getDeclaringClass();
+  }
+
+  public List<SoapCustomTransportProviderTypeWrapper> getCustomTransportProviders() {
+    Optional<CustomTransportProviders> customTransport = this.getAnnotation(CustomTransportProviders.class);
+    if (customTransport.isPresent()) {
+      return stream(customTransport.get().value()).map(SoapCustomTransportProviderTypeWrapper::new).collect(toList());
+    }
+    return emptyList();
   }
 }

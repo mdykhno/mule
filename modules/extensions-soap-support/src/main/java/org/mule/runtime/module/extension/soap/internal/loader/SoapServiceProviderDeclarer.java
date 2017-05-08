@@ -6,26 +6,31 @@
  */
 package org.mule.runtime.module.extension.soap.internal.loader;
 
+import static java.util.stream.Collectors.toSet;
 import static org.mule.runtime.api.meta.model.connection.ConnectionManagementType.POOLING;
 import static org.mule.runtime.extension.api.util.NameUtils.hyphenize;
 import static org.mule.runtime.module.extension.internal.ExtensionProperties.DEFAULT_CONNECTION_PROVIDER_NAME;
 import org.mule.metadata.api.ClassTypeLoader;
 import org.mule.runtime.api.meta.model.declaration.fluent.ConfigurationDeclarer;
 import org.mule.runtime.api.meta.model.declaration.fluent.ConnectionProviderDeclarer;
+import org.mule.runtime.api.meta.model.declaration.fluent.ParameterGroupDeclarer;
 import org.mule.runtime.api.metadata.TypedValue;
+import org.mule.runtime.extension.api.declaration.type.ExtensionsTypeLoaderFactory;
 import org.mule.runtime.extension.api.runtime.parameter.Literal;
 import org.mule.runtime.extension.api.runtime.parameter.ParameterResolver;
 import org.mule.runtime.extension.api.soap.SoapServiceProvider;
+import org.mule.runtime.extension.internal.property.LiteralModelProperty;
 import org.mule.runtime.module.extension.internal.loader.java.ParameterModelsLoaderDelegate;
 import org.mule.runtime.module.extension.internal.loader.java.contributor.InfrastructureFieldContributor;
 import org.mule.runtime.module.extension.internal.loader.java.contributor.ParameterDeclarerContributor;
 import org.mule.runtime.module.extension.internal.loader.java.contributor.ParameterTypeUnwrapperContributor;
 import org.mule.runtime.module.extension.internal.loader.java.property.ConnectionTypeModelProperty;
 import org.mule.runtime.module.extension.internal.loader.java.property.ImplementingTypeModelProperty;
-import org.mule.runtime.extension.internal.property.LiteralModelProperty;
 import org.mule.runtime.module.extension.internal.loader.java.property.ParameterResolverTypeModelProperty;
 import org.mule.runtime.module.extension.internal.loader.java.property.TypedValueTypeModelProperty;
+import org.mule.runtime.module.extension.internal.loader.java.type.runtime.TypeWrapper;
 import org.mule.runtime.module.extension.internal.loader.utils.ParameterDeclarationContext;
+import org.mule.runtime.module.extension.soap.internal.loader.type.runtime.SoapCustomTransportProviderTypeWrapper;
 import org.mule.runtime.module.extension.soap.internal.loader.type.runtime.SoapServiceProviderWrapper;
 import org.mule.runtime.module.extension.soap.internal.runtime.connection.ForwardingSoapClient;
 
@@ -41,6 +46,7 @@ import java.util.List;
 public class SoapServiceProviderDeclarer {
 
   private final ParameterModelsLoaderDelegate parametersLoader;
+  private final ClassTypeLoader typeLoader = ExtensionsTypeLoaderFactory.getDefault().createTypeLoader();
 
   SoapServiceProviderDeclarer(ClassTypeLoader loader) {
     parametersLoader = new ParameterModelsLoaderDelegate(getContributors(loader), loader);
@@ -64,6 +70,14 @@ public class SoapServiceProviderDeclarer {
 
     ParameterDeclarationContext context = new ParameterDeclarationContext("Service Provider", providerDeclarer.getDeclaration());
     parametersLoader.declare(providerDeclarer, provider.getParameters(), context);
+    declareCustomTransports(providerDeclarer, provider);
+  }
+
+  private void declareCustomTransports(ConnectionProviderDeclarer providerDeclarer, SoapServiceProviderWrapper serviceProvider) {
+    ParameterGroupDeclarer transportsGroup = providerDeclarer.onParameterGroup("Custom Transports");
+    List<SoapCustomTransportProviderTypeWrapper> transports = serviceProvider.getCustomTransportProviders();
+    transports.forEach(t -> transportsGroup.withOptionalParameter(t.getAlias()).ofType(typeLoader.load(t.getDeclaringClass())));
+    transportsGroup.withExclusiveOptionals(transports.stream().map(TypeWrapper::getAlias).collect(toSet()), false);
   }
 
   private List<ParameterDeclarerContributor> getContributors(ClassTypeLoader loader) {

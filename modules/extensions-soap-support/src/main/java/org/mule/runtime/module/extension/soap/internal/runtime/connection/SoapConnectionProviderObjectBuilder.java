@@ -7,26 +7,35 @@
 package org.mule.runtime.module.extension.soap.internal.runtime.connection;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import org.mule.runtime.api.config.PoolingProfile;
 import org.mule.runtime.api.connection.ConnectionProvider;
 import org.mule.runtime.api.exception.MuleException;
+import org.mule.runtime.api.meta.NamedObject;
 import org.mule.runtime.api.meta.model.ExtensionModel;
 import org.mule.runtime.api.meta.model.connection.ConnectionProviderModel;
+import org.mule.runtime.api.meta.model.parameter.ParameterGroupModel;
 import org.mule.runtime.core.api.MuleContext;
+import org.mule.runtime.core.api.registry.RegistrationException;
 import org.mule.runtime.core.api.retry.RetryPolicyTemplate;
 import org.mule.runtime.core.internal.connection.ConnectionManagerAdapter;
 import org.mule.runtime.core.internal.connection.ErrorTypeHandlerConnectionProviderWrapper;
 import org.mule.runtime.core.internal.connection.PoolingConnectionProviderWrapper;
+import org.mule.runtime.extension.api.soap.SoapCustomTransportProvider;
 import org.mule.runtime.extension.api.soap.SoapServiceProvider;
 import org.mule.runtime.module.extension.internal.loader.java.property.ImplementingTypeModelProperty;
 import org.mule.runtime.module.extension.internal.runtime.config.ConnectionProviderObjectBuilder;
 import org.mule.runtime.module.extension.internal.runtime.objectbuilder.DefaultResolverSetBasedObjectBuilder;
 import org.mule.runtime.module.extension.internal.runtime.resolver.ResolverSet;
 import org.mule.runtime.module.extension.internal.runtime.resolver.ResolverSetResult;
+import org.mule.service.http.api.HttpService;
 import org.mule.services.soap.api.client.SoapClient;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
- * Implementation of {@link ConnectionProviderObjectBuilder} which produces instances of {@link SoapConnectionProvider}.
+ * Implementation of {@link ConnectionProviderObjectBuilder} which produces instances of {@link ForwardingSoapClientConnectionProvider}.
  *
  * @since 4.0
  */
@@ -52,19 +61,39 @@ public final class SoapConnectionProviderObjectBuilder extends ConnectionProvide
   }
 
   /**
-   * Build a new {@link SoapConnectionProvider} based on a {@link SoapServiceProvider} instance.
+   * Build a new {@link ForwardingSoapClientConnectionProvider} based on a {@link SoapServiceProvider} instance.
    *
    * @param result the {@link ResolverSetResult} with the values for the {@link SoapServiceProvider} instance.
-   * @return a wrapped {@link SoapConnectionProvider} with error handling and polling mechanisms.
+   * @return a wrapped {@link ForwardingSoapClientConnectionProvider} with error handling and polling mechanisms.
    * @throws MuleException
    */
   @Override
   public ConnectionProvider build(ResolverSetResult result) throws MuleException {
     SoapServiceProvider serviceProvider = objectBuilder.build(result);
-    ConnectionProvider<ForwardingSoapClient> provider = new SoapConnectionProvider(serviceProvider);
+    SoapCustomTransportProvider transport = getCustomTransport(result);
+    ConnectionProvider<ForwardingSoapClient> provider = new ForwardingSoapClientConnectionProvider(serviceProvider, transport);
     provider = new PoolingConnectionProviderWrapper<>(provider, poolingProfile, disableValidation, retryPolicyTemplate);
     provider = new ErrorTypeHandlerConnectionProviderWrapper<>(provider, muleContext, extensionModel, retryPolicyTemplate);
     return provider;
+  }
+
+  /**
+   *
+   */
+  private SoapCustomTransportProvider getCustomTransport(ResolverSetResult resultSet) throws RegistrationException {
+    List<ParameterGroupModel> groups = providerModel.getParameterGroupModels();
+    Optional<ParameterGroupModel> transports = groups.stream().filter(pg -> pg.getName().contains("Transport")).findAny();
+    if (transports.isPresent()) {
+      List<String> paramNames = transports.get().getParameterModels().stream().map(NamedObject::getName).collect(toList());
+      for (String paramName : paramNames) {
+        Object transport = resultSet.get(paramName);
+        if (transport != null) {
+          return (SoapCustomTransportProvider) transport;
+        }
+      }
+    }
+    HttpService httpService = muleContext.getRegistry().lookupObject(HttpService.class);
+    return new DefaultHttpSoapCustomTransportProvider(httpService);
   }
 
   /**

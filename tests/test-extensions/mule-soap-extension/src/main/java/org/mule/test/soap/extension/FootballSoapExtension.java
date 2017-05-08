@@ -14,12 +14,14 @@ import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.soap.SoapServiceProvider;
 import org.mule.runtime.extension.api.soap.WebServiceDefinition;
+import org.mule.runtime.extension.api.soap.annotation.CustomTransportProviders;
 import org.mule.runtime.extension.api.soap.annotation.Soap;
 
 import java.util.List;
 
 @Alias("base")
 @Soap({LaLigaServiceProvider.class, CalcioServiceProvider.class})
+@CustomTransportProviders(TestFootballCustomTransportProvider.class)
 @Extension(name = "soap", description = "Soap Connect Test Extension")
 public class FootballSoapExtension implements SoapServiceProvider {
 

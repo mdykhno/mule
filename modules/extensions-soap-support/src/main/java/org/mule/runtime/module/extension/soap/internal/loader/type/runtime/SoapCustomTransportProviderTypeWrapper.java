@@ -6,16 +6,17 @@
  */
 package org.mule.runtime.module.extension.soap.internal.loader.type.runtime;
 
+import org.mule.runtime.extension.api.soap.SoapCustomTransportProvider;
 import org.mule.runtime.module.extension.internal.loader.java.type.runtime.TypeWrapper;
 
 /**
- * {@link TypeWrapper} implementation for classes that implements the Soap Transport interface.
+ * {@link TypeWrapper} implementation for classes that implements the {@link SoapCustomTransportProvider} interface.
  *
  * @since 4.0
  */
-class SoapTransportProviderTypeWrapper extends TypeWrapper {
+public class SoapCustomTransportProviderTypeWrapper extends TypeWrapper {
 
-  SoapTransportProviderTypeWrapper(Class<?> clazz) {
+  SoapCustomTransportProviderTypeWrapper(Class<?> clazz) {
     super(clazz);
   }
 }
