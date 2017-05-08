@@ -11,7 +11,6 @@ import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.InitialisationException;
 import org.mule.runtime.api.message.Message;
 import org.mule.runtime.api.metadata.DataType;
-import org.mule.runtime.api.metadata.DataTypeParamsBuilder;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.util.AttributeEvaluator;
@@ -21,52 +20,34 @@ import org.mule.runtime.core.util.AttributeEvaluator;
  */
 public class SetPayloadMessageProcessor extends SimpleMessageProcessor {
 
-  private DataType dataType;
+  private DataType dataType = DataType.OBJECT;
   private AttributeEvaluator valueEvaluator = new AttributeEvaluator(null);
 
 
   @Override
   public Event process(Event event) throws MuleException {
     final Message.Builder builder = Message.builder(event.getMessage());
-    final org.mule.runtime.core.api.Event.Builder eventBuilder = Event.builder(event);
 
-    if (dataType == null) {
-      final TypedValue typedValue = resolveTypedValue(event, eventBuilder);
-      builder.payload(typedValue.getValue()).mediaType(typedValue.getDataType().getMediaType());
-    } else {
-      Object value = resolveValue(event);
-      final DataTypeParamsBuilder dataTypeBuilder =
-          DataType.builder(dataType).type(value == null ? Object.class : value.getClass());
-      builder.payload(value).mediaType(dataTypeBuilder.build().getMediaType());
-    }
+    final TypedValue typedValue = resolveTypedValue(event);
+    builder.payload(typedValue.getValue()).mediaType(typedValue.getDataType().getMediaType());
 
-    return eventBuilder.message(builder.build()).build();
+    return Event.builder(event).message(builder.build()).build();
   }
 
-  private Object resolveValue(Event event) {
-    Object value;
+  private TypedValue resolveTypedValue(Event event) {
     if (valueEvaluator.getRawValue() == null) {
-      value = null;
+      return new TypedValue(null, dataType);
     } else {
-      value = valueEvaluator.resolveValue(event);
-    }
-    return value;
-  }
-
-  private TypedValue resolveTypedValue(Event event, Event.Builder eventBuilder) {
-    if (valueEvaluator.getRawValue() == null) {
-      return new TypedValue(null, DataType.OBJECT);
-    } else {
-      return valueEvaluator.resolveTypedValue(event, eventBuilder);
+      return valueEvaluator.resolveTypedValue(event, dataType);
     }
   }
 
   public void setMimeType(String mimeType) {
-    setDataType(DataType.builder(dataType == null ? DataType.OBJECT : dataType).mediaType(mimeType).build());
+    setDataType(DataType.builder(dataType).mediaType(mimeType).build());
   }
 
   public void setEncoding(String encoding) {
-    setDataType(DataType.builder(dataType == null ? DataType.OBJECT : dataType).charset(encoding).build());
+    setDataType(DataType.builder(dataType).charset(encoding).build());
   }
 
   public void setDataType(DataType dataType) {

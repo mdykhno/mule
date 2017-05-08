@@ -6,19 +6,18 @@
  */
 package org.mule.runtime.core.processor.simple;
 
+import static java.text.MessageFormat.format;
 import static org.mule.runtime.core.util.SystemUtils.getDefaultEncoding;
+
 import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.InitialisationException;
-import org.mule.runtime.api.message.Message;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.core.api.Event;
-import org.mule.runtime.core.api.Event.Builder;
 import org.mule.runtime.core.util.AttributeEvaluator;
 import org.mule.runtime.core.util.StringUtils;
 
 import java.nio.charset.Charset;
-import java.text.MessageFormat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,40 +38,33 @@ public abstract class AbstractAddVariablePropertyProcessor<T> extends SimpleMess
 
   @Override
   public Event process(Event event) throws MuleException {
-    Object keyValue = identifierEvaluator.resolveValue(event);
-    String key = (keyValue == null ? null : keyValue.toString());
+    String key = identifierEvaluator.resolveStringValue(event);
     if (key == null) {
       logger.error("Setting Null variable keys is not supported, this entry is being ignored");
       return event;
     } else {
-      final Builder builder = Event.builder(event);
-      TypedValue<T> typedValue = valueEvaluator.resolveTypedValue(event, builder);
-      event = builder.build();
+      TypedValue<T> typedValue =
+          valueEvaluator.resolveTypedValue(event, DataType.builder(getReturnDataType()).charset(resolveEncoding()).build());
       if (typedValue.getValue() == null) {
         if (logger.isDebugEnabled()) {
-          logger.debug(MessageFormat.format(
-                                            "Variable with key \"{0}\", not found on message using \"{1}\". Since the value was marked optional, nothing was set on the message for this variable",
-                                            key, valueEvaluator.getRawValue()));
+          logger
+              .debug(format("Variable with key '{0}', not found on message using '{1}'. Since the value was marked optional, nothing was set on the message for this variable",
+                            key, valueEvaluator.getRawValue()));
         }
         return removeProperty(event, key);
       } else {
         return addProperty(event, key, typedValue.getValue(), DataType.builder().type(typedValue.getDataType().getType())
-            .mediaType(getReturnDataType().getMediaType()).charset(resolveEncoding(typedValue)).build());
+            .mediaType(getReturnDataType().getMediaType()).charset(resolveEncoding()).build());
       }
     }
   }
 
-  protected Charset resolveEncoding(Object src) {
-    return getReturnDataType().getMediaType().getCharset().orElse(getEncoding(src));
+  protected Charset resolveEncoding() {
+    return getReturnDataType().getMediaType().getCharset().orElse(getEncoding());
   }
 
-  private Charset getEncoding(Object src) {
-    if (src instanceof Message) {
-      return ((Message) src).getPayload().getDataType().getMediaType().getCharset()
-          .orElse(getDefaultEncoding(muleContext));
-    } else {
-      return getDefaultEncoding(muleContext);
-    }
+  private Charset getEncoding() {
+    return getDefaultEncoding(muleContext);
   }
 
   /**

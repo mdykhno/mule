@@ -14,9 +14,9 @@ import org.mule.runtime.api.meta.AbstractAnnotatedObject;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.context.MuleContextAware;
+import org.mule.runtime.core.api.processor.Processor;
 import org.mule.runtime.core.internal.message.InternalMessage;
 import org.mule.runtime.core.internal.message.InternalMessage.Builder;
-import org.mule.runtime.core.api.processor.Processor;
 import org.mule.runtime.core.util.AttributeEvaluator;
 import org.mule.runtime.core.util.WildcardAttributeEvaluator;
 
@@ -52,7 +52,7 @@ public class CopyPropertiesProcessor extends AbstractAnnotatedObject implements 
                                                                          .getInboundPropertyDataType(matchedValue)));
       resultBuilder.message(builder.build());
     } else {
-      Object keyValue = propertyNameEvaluator.resolveValue(event);
+      String keyValue = propertyNameEvaluator.resolveStringValue(event);
       if (keyValue != null) {
         String propertyName = keyValue.toString();
         Serializable propertyValue = ((InternalMessage) message).getInboundProperty(propertyName);

@@ -7,12 +7,11 @@
 package org.mule.runtime.core.util;
 
 import static java.util.regex.Pattern.DOTALL;
-import org.mule.runtime.api.exception.MuleRuntimeException;
+
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.el.ExtendedExpressionManager;
-import org.mule.runtime.core.config.i18n.CoreMessages;
 
 import java.util.regex.Pattern;
 
@@ -77,15 +76,15 @@ public class AttributeEvaluator {
     return attributeType.equals(AttributeType.PARSE_EXPRESSION);
   }
 
-  public TypedValue resolveTypedValue(Event event, Event.Builder eventBuilder) {
+  public TypedValue resolveTypedValue(Event event, DataType expectedDataType) {
     if (isExpression()) {
-      return expressionManager.evaluate(attributeValue, event, eventBuilder, null);
+      return expressionManager.evaluate(attributeValue, expectedDataType, event);
     } else if (isParseExpression()) {
       final String value = expressionManager.parse(attributeValue, event, null);
       return new TypedValue(value, DataType.builder().type(String.class).build());
     } else {
       Class<?> type = attributeValue == null ? Object.class : String.class;
-      return new TypedValue(attributeValue, DataType.builder().type(type).build());
+      return new TypedValue(attributeValue, DataType.builder(expectedDataType).type(type).build());
     }
   }
 
@@ -100,34 +99,18 @@ public class AttributeEvaluator {
   }
 
   public Integer resolveIntegerValue(Event event) {
-    final Object value = resolveValue(event);
-    if (value == null) {
-      return null;
-    }
-    if (value instanceof Number) {
-      return ((Number) value).intValue();
-    } else if (value instanceof String) {
-      return Integer.parseInt((String) value);
-    } else {
-      throw new MuleRuntimeException(CoreMessages
-          .createStaticMessage(String.format("Value was required as integer but is of type: %s", value.getClass().getName())));
-    }
+    final Object value = resolveTypedValue(event, DataType.NUMBER).getValue();
+    return value == null ? null : ((Number) value).intValue();
   }
 
   public String resolveStringValue(Event event) {
-    final Object value = resolveValue(event);
-    if (value == null) {
-      return null;
-    }
-    return value.toString();
+    final TypedValue value = resolveTypedValue(event, DataType.STRING);
+    return value == null ? null : (String) value.getValue();
   }
 
   public Boolean resolveBooleanValue(Event event) {
-    final Object value = resolveValue(event);
-    if (value == null || value instanceof Boolean) {
-      return (Boolean) value;
-    }
-    return Boolean.valueOf(value.toString());
+    final TypedValue value = resolveTypedValue(event, DataType.BOOLEAN);
+    return value == null ? null : (Boolean) value.getValue();
   }
 
   public String getRawValue() {

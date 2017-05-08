@@ -18,8 +18,8 @@ import org.mule.runtime.core.internal.message.InternalMessage;
 import java.util.Iterator;
 
 /**
- * Provides universal access for evaluating expressions embedded in Mule configurations, such as XML, Java,
- * scripting and annotations.
+ * Provides universal access for evaluating expressions embedded in Mule configurations, such as XML, Java, scripting and
+ * annotations.
  */
 public interface ExpressionManager extends MuleExpressionLanguage {
 
@@ -41,8 +41,8 @@ public interface ExpressionManager extends MuleExpressionLanguage {
    * language implementation should provided access to the message.
    *
    * This version of {@code evaluate} performs expression evaulation on an immutable event. Any {@link Event} or
-   * {@link InternalMessage} mutation performed within the expression will impact within the context of
-   * expression evaluation but will not mutated the {@code event} parameter.
+   * {@link InternalMessage} mutation performed within the expression will impact within the context of expression evaluation but
+   * will not mutated the {@code event} parameter.
    *
    * @param expression the expression to be executed
    * @param event the current event being processed
@@ -56,8 +56,8 @@ public interface ExpressionManager extends MuleExpressionLanguage {
    * language implementation should provided access to the message.
    *
    * This version of {@code evaluate} performs expression evaulation on an immutable event. Any {@link Event} or
-   * {@link InternalMessage} mutation performed within the expression will impact within the context of
-   * expression evaluation but will not mutated the {@code event} parameter.
+   * {@link InternalMessage} mutation performed within the expression will impact within the context of expression evaluation but
+   * will not mutated the {@code event} parameter.
    *
    * @param expression the expression to be executed
    * @param event the current event being processed
@@ -72,8 +72,8 @@ public interface ExpressionManager extends MuleExpressionLanguage {
    * language implementation should provided access to the message.
    *
    * This version of {@code evaluate} performs expression evaulation on an immutable event. Any {@link Event} or
-   * {@link InternalMessage} mutation performed within the expression will impact within the context of
-   * expression evaluation but will not mutated the {@code event} parameter.
+   * {@link InternalMessage} mutation performed within the expression will impact within the context of expression evaluation but
+   * will not mutated the {@code event} parameter.
    *
    * @param expression the expression to be executed
    * @param event the current event being processed
@@ -90,8 +90,8 @@ public interface ExpressionManager extends MuleExpressionLanguage {
    * provided by the expression language implementation.
    *
    * This version of {@code evaluate} performs expression evaulation on an immutable event. Any {@link Event} or
-   * {@link InternalMessage} mutation performed within the expression will impact within the context of
-   * expression evaluation but will not mutated the {@code event} parameter.
+   * {@link InternalMessage} mutation performed within the expression will impact within the context of expression evaluation but
+   * will not mutated the {@code event} parameter.
    *
    * @param expression the expression to be executed
    * @param event the current event being processed
@@ -107,12 +107,25 @@ public interface ExpressionManager extends MuleExpressionLanguage {
    * Evaluates an expression according to the global {@link BindingContext} and the {@link DataType} of the expected result.
    *
    * @param expression the EL expression
-   * @param expectedOutputType the expected output type so that automatic conversion can be performed for the resulting value type.
+   * @param expectedOutputType the expected output type so that automatic conversion can be performed for the resulting value
+   *        type.
    * @return the result of the expression plus its type
    * @throws ExpressionRuntimeException if a problem occurs evaluating the expression or during transformation
    */
   TypedValue evaluate(String expression, DataType expectedOutputType) throws ExpressionRuntimeException;
 
+  /**
+   * Evaluates an expression according to a given {@link Event}, the {@link DataType} of the expected * result and an
+   * {@link Event}.
+   *
+   * @param expression the EL expression
+   * @param expectedOutputType the expected output type so that automatic conversion can be performed for the resulting value
+   *        type.
+   * @param event the current event to consider
+   * @return the result of the expression plus its type
+   * @throws ExpressionRuntimeException if a problem occurs evaluating the expression or during transformation
+   */
+  TypedValue evaluate(String expression, DataType expectedOutputType, Event event) throws ExpressionRuntimeException;
 
   /**
    * Evaluates an expression according to a given {@link BindingContext}, the global one, the {@link DataType} of the expected

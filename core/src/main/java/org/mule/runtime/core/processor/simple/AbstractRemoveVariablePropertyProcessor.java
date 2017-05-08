@@ -6,9 +6,9 @@
  */
 package org.mule.runtime.core.processor.simple;
 
-import org.mule.runtime.core.api.Event;
 import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.InitialisationException;
+import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.util.AttributeEvaluator;
 import org.mule.runtime.core.util.WildcardAttributeEvaluator;
 
@@ -42,9 +42,9 @@ public abstract class AbstractRemoveVariablePropertyProcessor extends SimpleMess
       });
       return resultEvent.get();
     } else {
-      Object keyValue = identifierEvaluator.resolveValue(event);
+      String keyValue = identifierEvaluator.resolveStringValue(event);
       if (keyValue != null) {
-        return removeProperty(event, keyValue.toString());
+        return removeProperty(event, keyValue);
       } else {
         logger.info("Key expression return null, no property will be removed");
         return event;

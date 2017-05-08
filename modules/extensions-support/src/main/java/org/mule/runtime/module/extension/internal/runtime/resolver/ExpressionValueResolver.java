@@ -8,8 +8,8 @@ package org.mule.runtime.module.extension.internal.runtime.resolver;
 
 import static org.mule.runtime.api.util.Preconditions.checkArgument;
 import static org.mule.runtime.core.util.ClassUtils.isInstance;
+
 import org.mule.runtime.api.exception.MuleException;
-import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.el.ExtendedExpressionManager;
 import org.mule.runtime.core.util.AttributeEvaluator;
@@ -60,9 +60,7 @@ public class ExpressionValueResolver<T> implements ValueResolver<T> {
   @Override
   public T resolve(Event event) throws MuleException {
     initEvaluator();
-    TypedValue typedValue = evaluator.resolveTypedValue(event, Event.builder(event));
-
-    Object value = typedValue.getValue();
+    Object value = evaluator.resolveValue(event);
 
     if (isInstance(ValueResolver.class, value)) {
       value = ((ValueResolver) value).resolve(event);

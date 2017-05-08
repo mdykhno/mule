@@ -11,6 +11,7 @@ import static org.mule.runtime.core.api.construct.Flow.builder;
 import static org.mule.runtime.core.config.i18n.CoreMessages.transformFailedBeforeFilter;
 import static org.mule.runtime.core.util.ClassUtils.hash;
 import static org.mule.runtime.dsl.api.component.config.DefaultComponentLocation.fromSingleComponent;
+
 import org.mule.runtime.api.lifecycle.Initialisable;
 import org.mule.runtime.api.lifecycle.InitialisationException;
 import org.mule.runtime.api.message.Message;
@@ -85,7 +86,7 @@ public class RegExFilter implements Filter, ObjectFilter, MuleContextAware, Init
   public boolean accept(Event event, Event.Builder builder) {
     try {
       if (value != null && value.getRawValue() != null) {
-        return accept(value.resolveValue(event));
+        return accept(value.resolveStringValue(event));
       } else {
         final Message transformedMessage =
             muleContext.getTransformationService().transform(event.getMessage(), DataType.STRING);

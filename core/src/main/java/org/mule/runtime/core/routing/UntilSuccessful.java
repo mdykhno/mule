@@ -6,6 +6,7 @@
  */
 package org.mule.runtime.core.routing;
 
+import static org.mule.runtime.api.i18n.I18nMessageFactory.createStaticMessage;
 import static org.mule.runtime.core.api.processor.MessageProcessors.newChain;
 import static org.mule.runtime.core.api.processor.MessageProcessors.newExplicitChain;
 
@@ -82,7 +83,7 @@ public class UntilSuccessful extends AbstractOutboundRouter implements UntilSucc
     failureExpressionFilter.setMuleContext(muleContext);
 
     if ((ackExpression != null) && (!muleContext.getExpressionManager().isExpression(ackExpression))) {
-      throw new InitialisationException(I18nMessageFactory.createStaticMessage("Invalid ackExpression: " + ackExpression), this);
+      throw new InitialisationException(createStaticMessage("Invalid ackExpression: " + ackExpression), this);
     }
 
     if (synchronous) {

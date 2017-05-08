@@ -7,6 +7,7 @@
 package org.mule.runtime.module.extension.internal.runtime.resolver;
 
 import static org.mule.runtime.core.util.ClassUtils.isInstance;
+
 import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.Initialisable;
 import org.mule.runtime.api.lifecycle.InitialisationException;
@@ -43,7 +44,7 @@ public class ExpressionTypedValueValueResolver<T> extends ExpressionValueResolve
   public TypedValue<T> resolve(Event event) throws MuleException {
     initEvaluator();
 
-    TypedValue typedValue = evaluator.resolveTypedValue(event, Event.builder(event));
+    TypedValue typedValue = evaluator.resolveTypedValue(event, DataType.OBJECT);
     if (isInstance(expectedClass, typedValue.getValue())) {
       return typedValue;
     } else {

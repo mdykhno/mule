@@ -7,6 +7,7 @@
 
 package org.mule.runtime.core.transformer.simple;
 
+import static java.nio.charset.StandardCharsets.UTF_16;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -24,13 +25,11 @@ import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.config.MuleConfiguration;
-import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.el.ExtendedExpressionManager;
 import org.mule.runtime.core.processor.simple.SetPayloadMessageProcessor;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +37,8 @@ import org.junit.Test;
 public class SetPayloadMessageProcessorTestCase extends AbstractMuleContextTestCase {
 
   private static final String PLAIN_TEXT = "This is a plain text";
-  private static final String EXPRESSION = "#[mel:testVariable]";
-  private static final Charset CUSTOM_ENCODING = StandardCharsets.UTF_16;
+  private static final String EXPRESSION = "#[testVariable]";
+  private static final Charset CUSTOM_ENCODING = UTF_16;
 
   private SetPayloadMessageProcessor setPayloadMessageProcessor;
   private MuleContext muleContext;
@@ -54,7 +53,7 @@ public class SetPayloadMessageProcessorTestCase extends AbstractMuleContextTestC
 
     when(muleContext.getExpressionManager()).thenReturn(expressionManager);
     when(muleContext.getConfiguration()).thenReturn(mock(MuleConfiguration.class));
-    when(expressionManager.parse(anyString(), any(Event.class), any(FlowConstruct.class)))
+    when(expressionManager.evaluate(anyString(), any(DataType.class), any(Event.class)))
         .thenAnswer(invocation -> (String) invocation.getArguments()[0]);
   }
 
@@ -86,8 +85,7 @@ public class SetPayloadMessageProcessorTestCase extends AbstractMuleContextTestC
     when(expressionManager.isExpression(EXPRESSION)).thenReturn(true);
     setPayloadMessageProcessor.initialise();
     TypedValue typedValue = new TypedValue(PLAIN_TEXT, DataType.STRING);
-    when(expressionManager.evaluate(EXPRESSION, testEvent())).thenReturn(typedValue);
-    when(expressionManager.evaluate(eq(EXPRESSION), eq(testEvent()), any(Event.Builder.class), eq(null)))
+    when(expressionManager.evaluate(eq(EXPRESSION), any(DataType.class), any(Event.class)))
         .thenReturn(typedValue);
 
     Event response = setPayloadMessageProcessor.process(testEvent());

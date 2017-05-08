@@ -21,6 +21,7 @@ import org.mule.runtime.api.lifecycle.Disposable;
 import org.mule.runtime.api.lifecycle.Initialisable;
 import org.mule.runtime.api.lifecycle.InitialisationException;
 import org.mule.runtime.api.meta.AbstractAnnotatedObject;
+import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.construct.FlowConstruct;
@@ -93,11 +94,11 @@ public class IdempotentMessageValidator extends AbstractAnnotatedObject
   }
 
   protected String getValueForEvent(Event event) throws MessagingException {
-    return (String) muleContext.getExpressionManager().evaluate(valueExpression, event).getValue();
+    return (String) muleContext.getExpressionManager().evaluate(valueExpression, DataType.STRING, event).getValue();
   }
 
   protected String getIdForEvent(Event event) throws MuleException {
-    return (String) muleContext.getExpressionManager().evaluate(idExpression, event).getValue();
+    return (String) muleContext.getExpressionManager().evaluate(idExpression, DataType.STRING, event).getValue();
   }
 
   public String getIdExpression() {

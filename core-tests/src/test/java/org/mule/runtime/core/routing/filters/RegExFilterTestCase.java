@@ -15,10 +15,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mule.runtime.api.message.Message.of;
+import static org.mule.runtime.core.api.config.MuleProperties.MULE_ENCODING_SYSTEM_PROPERTY;
+
 import org.mule.runtime.api.lifecycle.InitialisationException;
 import org.mule.runtime.api.message.Message;
 import org.mule.runtime.core.api.Event;
-import org.mule.runtime.core.api.config.MuleProperties;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 
 import java.util.regex.Pattern;
@@ -100,7 +101,7 @@ public class RegExFilterTestCase extends AbstractMuleContextTestCase {
 
   @Test
   public void testByteArrayInput() {
-    System.setProperty(MuleProperties.MULE_ENCODING_SYSTEM_PROPERTY, "UTF-8");
+    System.setProperty(MULE_ENCODING_SYSTEM_PROPERTY, "UTF-8");
     RegExFilter filter = new RegExFilter("The quick (.*)");
     assertNotNull(filter.getPattern());
 
