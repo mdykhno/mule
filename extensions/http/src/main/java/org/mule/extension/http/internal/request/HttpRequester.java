@@ -83,8 +83,8 @@ public class HttpRequester {
                         CompletionCallback<Object, HttpResponseAttributes> callback) {
     HttpRequest httpRequest = eventToHttpRequest.create(requestBuilder, authentication, muleContext);
 
-    //TODO: MULE-10340 - Add notifications to HTTP request
-    //notificationHelper.fireNotification(this, muleEvent, httpRequest.getUri(), flowConstruct, MESSAGE_REQUEST_BEGIN);
+    // TODO: MULE-10340 - Add notifications to HTTP request
+    // notificationHelper.fireNotification(this, muleEvent, httpRequest.getUri(), flowConstruct, MESSAGE_REQUEST_BEGIN);
     client.send(httpRequest, responseTimeout, followRedirects, resolveAuthentication(authentication),
                 createResponseHandler(muleContext, requestBuilder, client, httpRequest, checkRetry,
                                       callback));
@@ -98,26 +98,24 @@ public class HttpRequester {
 
       @Override
       public void onCompletion(HttpResponse response) {
-        //TODO: MULE-11310 - Make HTTP request scheduling fine grained
-        scheduler.execute(() -> {
-          HttpResponseToResult httpResponseToResult = new HttpResponseToResult(config, parseResponse, muleContext);
-          try {
-            MediaType mediaType = requestBuilder.getBody().getDataType().getMediaType();
-            Result<Object, HttpResponseAttributes> result = httpResponseToResult.convert(mediaType, response,
-                                                                                         httpRequest.getUri());
-            //TODO: MULE-10340 - Add notifications to HTTP request
-            //notificationHelper.fireNotification(this, muleEvent, httpRequest.getUri(), flowConstruct, MESSAGE_REQUEST_END);
-            if (resendRequest(result, checkRetry, authentication)) {
-              consumePayload(result);
-              doRequest(client, requestBuilder, false, muleContext, callback);
-            } else {
-              responseValidator.validate(result);
-              callback.success(result);
-            }
-          } catch (Exception e) {
-            callback.error(e);
+        // TODO: MULE-11310 - Make HTTP request scheduling fine grained
+        HttpResponseToResult httpResponseToResult = new HttpResponseToResult(config, parseResponse, muleContext);
+        try {
+          MediaType mediaType = requestBuilder.getBody().getDataType().getMediaType();
+          Result<Object, HttpResponseAttributes> result = httpResponseToResult.convert(mediaType, response,
+                                                                                       httpRequest.getUri());
+          // TODO: MULE-10340 - Add notifications to HTTP request
+          // notificationHelper.fireNotification(this, muleEvent, httpRequest.getUri(), flowConstruct, MESSAGE_REQUEST_END);
+          if (resendRequest(result, checkRetry, authentication)) {
+            consumePayload(result);
+            doRequest(client, requestBuilder, false, muleContext, callback);
+          } else {
+            responseValidator.validate(result);
+            callback.success(result);
           }
-        });
+        } catch (Exception e) {
+          callback.error(e);
+        }
       }
 
       @Override

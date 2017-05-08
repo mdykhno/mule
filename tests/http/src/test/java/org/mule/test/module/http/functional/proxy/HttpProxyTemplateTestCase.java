@@ -248,7 +248,7 @@ public class HttpProxyTemplateTestCase extends AbstractHttpRequestTestCase {
     assertRequestOk(getProxyUrl(""), null);
     SensingNullRequestResponseMessageProcessor requestResponseProcessor = getSensingNullRequestResponseMessageProcessor();
     assertThat(requestResponseProcessor.requestThread, not(equalTo(requestResponseProcessor.responseThread)));
-    assertThat(requestResponseProcessor.responseThread.getName(), startsWith(IO_THREAD_PREFIX));
+    assertThat(requestResponseProcessor.responseThread.getName(), startsWith(CPU_LIGHT_THREAD_PREFIX));
   }
 
   private SensingNullRequestResponseMessageProcessor getSensingNullRequestResponseMessageProcessor() {
